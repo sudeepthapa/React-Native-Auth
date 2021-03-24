@@ -1,13 +1,21 @@
+// @ts-nocheck
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
-import React from 'react';
+import React, {useContext} from 'react';
 import { ScrollView, StyleSheet, View, Text } from 'react-native';
 import { Button, TextInput } from 'react-native-paper';
+import AuthContext from '../store/contexts/AuthContext';
 
 const SignupScreen = props => {
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [fullName, setFullName] = React.useState('')
+  const authContext = useContext(AuthContext);
+
+  const handleSignup = () => {
+    authContext.signUpUser({ email, password, fullName })
+    props.navigation.navigate('Login')
+  }
 
   return <ScrollView style={styles.screen}>
     <TextInput
@@ -28,7 +36,7 @@ const SignupScreen = props => {
       onChangeText={text => setPassword(text)}
       placeholder="Password"
     />
-    <Button onPress={() => { }} mode="contained" style={{ marginTop: 30, marginBottom: 10 }}>Register Now!</Button>
+    <Button onPress={handleSignup} mode="contained" style={{ marginTop: 30, marginBottom: 10 }}>Register Now!</Button>
     <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-around'}}>
       <Text>Already registered ?</Text>
       <Button onPress={() => props.navigation.navigate('Login')}>Login</Button>
