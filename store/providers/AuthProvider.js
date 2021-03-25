@@ -24,9 +24,13 @@ class AuthProvider extends Component {
     this.setAuthenticating(false)
   }
 
-  signUpUser = async(user) => {
+  signUpUser = async (user) => {
     try {
-      await AsyncStorage.setItem('users', JSON.stringify(user));
+      const prevUsers = await AsyncStorage.getItem('users') || JSON.stringify([]);
+      const allUsers = JSON.parse(prevUsers);
+      const users = [...allUsers, user];
+
+      await AsyncStorage.setItem('users', JSON.stringify(users));
     } catch (e) {
       console.log(e)
     }
@@ -34,12 +38,13 @@ class AuthProvider extends Component {
   
   loginUser = async(email, password) => {
     try {
-      const usersRes = await AsyncStorage.getItem('users');
+      const usersRes = await AsyncStorage.getItem('users') || JSON.stringify([]);
       const users = JSON.parse(usersRes);
-      
-      if (users.email == email && users.password == password) {
-        await AsyncStorage.setItem('authenticated', JSON.stringify(users));
-        this.setAuthUser(JSON.stringify(users))
+      console.log(users)
+      const user = users.find(u => u.email == email);
+      if (user.email == email && user.password == password) {
+        await AsyncStorage.setItem('authenticated', JSON.stringify(user));
+        this.setAuthUser(JSON.stringify(user))
         this.setAuthenticated(true);
       } else {
         this.setAuthenticated(false);
