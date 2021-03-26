@@ -24,8 +24,8 @@ const LoginScreen = props => {
       onChangeText={text => setPassword(text)}
       placeholder="Password"
     />
-    {authContext.error && <Text style={{color:'red'}}>Something went wrong !</Text>}
-    <Button onPress={() => authContext.loginUser(email, password) } mode="contained" style={{ marginTop: 30, marginBottom: 10 }}>Login</Button>
+    {authContext.errorMessage !== '' && <Text style={{color:'red'}}>{authContext.errorMessage}</Text>}
+    <Button onPress={() => authContext.loginUserWithFirebase(email, password) } mode="contained" style={{ marginTop: 30, marginBottom: 10 }}>Login</Button>
     <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-around'}}>
       <Text>Not registered yet ?</Text>
       <Button onPress={() => props.navigation.navigate('Signup')}>Signup</Button>

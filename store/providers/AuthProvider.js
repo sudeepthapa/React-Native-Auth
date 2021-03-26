@@ -2,6 +2,9 @@
 import React, {Component} from 'react';
 import AuthContext from '../contexts/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+
+const BASE_URL = 'https://react-native-auth-23b5f-default-rtdb.firebaseio.com';
 
 class AuthProvider extends Component {
   state = {
@@ -9,6 +12,7 @@ class AuthProvider extends Component {
     isAuthenticating: false,
     error: false,
     authUser: {},
+    errorMessage: ''
   };
 
   componentDidMount = async () => {
@@ -35,6 +39,19 @@ class AuthProvider extends Component {
       console.log(e)
     }
   }
+
+  signUpUserWithFirebase = async (user) => {
+    try {
+      const userRes = await axios.post(`${BASE_URL}/users.json`, user);
+      /**
+       await axios.patch(`${BASE_URL}/users/-fdaihfdafha.json`, user); ----update item
+       await axios.delete(`${BASE_URL}/users/-fdaihfdafha.json`);  ---- delete
+       await axios.get(`${BASE_URL}/users/-fdaihfdafha.json`); ---- get individual item
+       */
+    } catch (error) {
+      console.log(error)
+    }
+  }
   
   loginUser = async(email, password) => {
     try {
@@ -59,10 +76,62 @@ class AuthProvider extends Component {
     }
   }
 
+  loginUserWithFirebase = async(email, password) => {
+    try {
+      const allUsers = await axios.get(`${BASE_URL}/users.json`);
+      const usersIds = Object.keys(allUsers.data)
+      const users = usersIds.map(userId => {
+        return {
+          ...allUsers.data[userId],
+          id: userId
+        }
+      })
+      const loginUser = users.find(user => user.email === email)
+      var err = "";
+      if (loginUser) {
+        if (loginUser.password !== password) {
+          err = "Email and Password donot match";
+          this.setAuthenticated(false);
+        } else {
+          await AsyncStorage.setItem('authenticated', JSON.stringify(loginUser));
+          this.setAuthUser(JSON.stringify(loginUser));
+          this.setAuthenticated(true);
+          this.setAuthError(false);
+          this.setState({
+            ...this.state,
+            errorMessage: ''
+          })
+        }
+      } else {
+        this.setAuthenticated(false);
+        err = "User with given email doesnot exist."
+      }
+      this.setState({
+        ...this.state,
+        errorMessage: err
+      })
+    } catch (error) {
+      console.log(error)
+      this.setAuthenticated(false);
+      this.setState({
+        ...this.state,
+        errorMessage: "Something went wrong!"
+      })
+    }
+    finally {
+      this.setAuthenticating(false)
+    }
+  }
+
   logOut = async() => {
     await AsyncStorage.removeItem('authenticated');
     this.setAuthenticated(false)
     this.setAuthUser({})
+    this.setAuthError(false)
+    this.setState({
+      ...this.state,
+      errorMessage: ''
+    })
   }
 
   setAuthUser = (user) => {
@@ -102,6 +171,8 @@ class AuthProvider extends Component {
         signUpUser: this.signUpUser,
         loginUser: this.loginUser,
         logOut: this.logOut,
+        signUpUserWithFirebase: this.signUpUserWithFirebase,
+        loginUserWithFirebase: this.loginUserWithFirebase
       }}>
         {this.props.children}
       </AuthContext.Provider>

@@ -13,7 +13,7 @@ const SignupScreen = props => {
   const authContext = useContext(AuthContext);
 
   const handleSignup = () => {
-    authContext.signUpUser({ email, password, fullName })
+    authContext.signUpUserWithFirebase({ email, password, fullName })
     props.navigation.navigate('Login')
   }
 
